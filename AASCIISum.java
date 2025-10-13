@@ -16,6 +16,8 @@ public class AASCIISum{
                 osum += (int) s.charAt(i);
             }
         }
-        return esum >= osum ? esum : osum;
+        int result =esum >= osum ? esum : osum;
+        // return esum >= osum ? esum : osum;
+        return result;
     }
 }
