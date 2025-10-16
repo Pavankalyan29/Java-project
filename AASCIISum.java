@@ -2,12 +2,13 @@ import java.util.*;
 public class AASCIISum{
     public static void main(String args[]){
         Scanner sc = new Scanner(System.in);
-        String s = sc.nextLine();
+        String s = "Helloworld";
         System.out.println(maxSum(s));
     }
     public static int maxSum(String s){
         int esum = 0;
         int osum = 0;
+        s = s.toLowerCase();
         for(int i=0;i<s.length();i++){
             if(i % 2 == 0){
                 esum += (int) s.charAt(i);
