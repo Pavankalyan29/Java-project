@@ -93,6 +93,7 @@ pipeline {
             echo '✅ Build successful!'
         }
         failure {
+            
             echo '❌ Build failed. Check console output for details.'
         }
     }
