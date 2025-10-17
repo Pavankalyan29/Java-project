@@ -11,4 +11,5 @@ COPY AASCIISum.java .
 RUN javac AASCIISum.java
 
 # Step 5: Run the program when the container starts
+
 CMD ["java", "AASCIISum"]
