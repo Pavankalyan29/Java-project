@@ -1,14 +1,15 @@
-# Step 1: Use an official JDK image to compile and run Java code
+
+# Use official OpenJDK image
 FROM openjdk:17-alpine
 
-# Step 2: Set working directory inside container
+# Set working directory inside container
 WORKDIR /app
 
-# Step 3: Copy your Java source code into container
+# Copy Java source code
 COPY AASCIISum.java .
 
-# Step 4: Compile the Java program
+# Compile Java program
 RUN javac AASCIISum.java
 
-# Step 5: Run the program when the container starts
+# Run the program
 CMD ["java", "AASCIISum"]
