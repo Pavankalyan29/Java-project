@@ -1,16 +1,51 @@
+// pipeline {
+//     agent any
+
+//     stages {
+//         stage('Checkout Code') {
+//             steps {
+//                 git branch: 'main', url: 'https://github.com/Pavankalyan29/Java-project.git'
+//             }
+//         }
+
+//         stage('Compile Java Code') {
+//             steps {
+//                 echo 'Compiling Java Program...'
+//                 bat 'javac AASCIISum.java'
+//             }
+//         }
+
+//         stage('Run Java Program') {
+//             steps {
+//                 echo 'Running Java Program...'
+//                 // For now, we’ll just give it a test input. You can modify this later.
+//                 bat 'echo HelloWorld | java AASCIISum'
+//             }
+//         }
+
+//         stage('Archive Artifacts') {
+//             steps {
+//                 archiveArtifacts artifacts: '*.class', fingerprint: true
+//             }
+//         }
+//     }
+
+//     post {
+//         success {
+//             echo '✅ Build successful!'
+//         }
+//         failure {
+//             echo '❌ Build failed. Check console output for details.'
+//         }
+//     }
+// }
+
+
+
 pipeline {
     agent any
 
-    environment {
-        AWS_ACCESS_KEY_ID     = credentials('aws-access-key')
-        AWS_SECRET_ACCESS_KEY = credentials('aws-secret-key')
-        AWS_REGION            = 'ap-south-1'
-        ECR_REPO_NAME         = 'asciisum-app'
-        ACCOUNT_ID            = '123456789012'  // replace with your AWS account ID
-    }
-
     stages {
-
         stage('Checkout Code') {
             steps {
                 git branch: 'main', url: 'https://github.com/Pavankalyan29/Java-project.git'
@@ -24,63 +59,41 @@ pipeline {
             }
         }
 
+        stage('Run Java Program') {
+            steps {
+                echo 'Running Java Program...'
+                bat 'echo HelloWorld | java AASCIISum'
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 echo 'Building Docker image...'
-                bat 'docker build -t %ECR_REPO_NAME% .'
+                bat 'docker build -t asciisum-app .'
             }
         }
 
-        stage('Authenticate to ECR') {
+        stage('Run Docker Container') {
             steps {
-                echo 'Logging into AWS ECR...'
-                bat '''
-                aws ecr get-login-password --region %AWS_REGION% | docker login --username AWS --password-stdin %ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com
-                '''
+                echo 'Running Docker container...'
+                // Pass input automatically using echo
+                bat 'echo HelloWorld | docker run -i asciisum-app'
             }
         }
 
-        stage('Push Docker Image to ECR') {
+        stage('Archive Artifacts') {
             steps {
-                echo 'Pushing Docker image to ECR...'
-                bat '''
-                docker tag %ECR_REPO_NAME% %ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com/%ECR_REPO_NAME%:latest
-                docker push %ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com/%ECR_REPO_NAME%:latest
-                '''
-            }
-        }
-
-        stage('Terraform Init') {
-            steps {
-                dir('terraform') {
-                    bat 'terraform init'
-                }
-            }
-        }
-
-        stage('Terraform Plan') {
-            steps {
-                dir('terraform') {
-                    bat 'terraform plan -out=tfplan'
-                }
-            }
-        }
-
-        stage('Terraform Apply') {
-            steps {
-                dir('terraform') {
-                    bat 'terraform apply -auto-approve'
-                }
+                archiveArtifacts artifacts: '*.class', fingerprint: true
             }
         }
     }
 
     post {
         success {
-            echo '✅ Pipeline completed successfully!'
+            echo '✅ Build successful!'
         }
         failure {
-            echo '❌ Pipeline failed!'
+            echo '❌ Build failed. Check console output for details.'
         }
     }
 }
