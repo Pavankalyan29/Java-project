@@ -6,7 +6,7 @@ pipeline {
         REGION = 'ap-south-1'
         IMAGE_NAME = 'asciisum-app'
     }
-
+    
     stages {
         // stage('Setup AWS Credentials') {
         //     steps {
