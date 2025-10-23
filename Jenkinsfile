@@ -29,6 +29,13 @@ pipeline {
             }
         }
 
+        stage('Compile Java Code') {
+            steps {
+                echo 'Compiling Java Program...'
+                bat 'javac AASCIISum.java'
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 echo 'Building Docker image...'
@@ -50,16 +57,26 @@ pipeline {
         }
         stage('Terraform Deploy') {
             steps {
-                echo 'Deploying infrastructure with Terraform...'
                 dir('terraform') {
-                    withAWS(credentials: 'aws-creds', region: '%REGION%') {
-                        // Initialize Terraform
+                    withAWS(credentials: 'aws-creds', region: "${REGION}") {
+                        echo 'Initializing Terraform...'
                         bat 'terraform init'
 
-                        // Apply Terraform plan automatically
+                        echo 'Validating Terraform...'
+                        bat 'terraform validate'
+
+                        echo 'Planning Terraform deployment...'
+                        bat 'terraform plan'
+
+                        echo 'Applying Terraform deployment...'
                         bat 'terraform apply -auto-approve'
                     }
                 }
+            }
+        }
+        stage('Archive Artifacts') {
+            steps {
+                archiveArtifacts artifacts: '*.class', fingerprint: true
             }
         }
     }
