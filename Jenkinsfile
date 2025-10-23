@@ -37,13 +37,16 @@ pipeline {
 
         stage('Push Docker Image to ECR') {
             steps {
+            withAWS(credentials: 'aws-creds', region: 'ap-south-1') {
                 bat '''
-                    aws ecr get-login-password --region %REGION% | docker login --username AWS --password-stdin %AWS_ACCOUNT_ID%.dkr.ecr.%REGION%.amazonaws.com
-                    docker tag %IMAGE_NAME%:latest %AWS_ACCOUNT_ID%.dkr.ecr.%REGION%.amazonaws.com/%IMAGE_NAME%:latest
-                    docker push %AWS_ACCOUNT_ID%.dkr.ecr.%REGION%.amazonaws.com/%IMAGE_NAME%:latest
+                aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 108792016419.dkr.ecr.ap-south-1.amazonaws.com
+                docker tag asciisum-app:latest 108792016419.dkr.ecr.ap-south-1.amazonaws.com/asciisum-app:latest
+                docker push 108792016419.dkr.ecr.ap-south-1.amazonaws.com/asciisum-app:latest
                 '''
             }
         }
+    }
+}
 
         stage('Terraform Deploy') {
             steps {
