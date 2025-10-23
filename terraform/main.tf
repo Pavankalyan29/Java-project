@@ -30,7 +30,7 @@ data "aws_ecr_image" "latest_image" {
 
 # EC2 instance
 resource "aws_instance" "app_instance" {
-    ami           = "ami-0c02fb55956c7d316"  # Amazon Linux 2
+    ami           = "ami-06fa3f12191aa3337"  # Amazon Linux 2
     instance_type = var.instance_type
     key_name      = var.key_name
     vpc_security_group_ids = [aws_security_group.app_sg.id]
