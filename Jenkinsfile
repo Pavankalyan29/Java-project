@@ -1,100 +1,57 @@
-// pipeline {
-//     agent any
-
-//     stages {
-//         stage('Checkout Code') {
-//             steps {
-//                 git branch: 'main', url: 'https://github.com/Pavankalyan29/Java-project.git'
-//             }
-//         }
-
-//         stage('Compile Java Code') {
-//             steps {
-//                 echo 'Compiling Java Program...'
-//                 bat 'javac AASCIISum.java'
-//             }
-//         }
-
-//         stage('Run Java Program') {
-//             steps {
-//                 echo 'Running Java Program...'
-//                 // For now, we’ll just give it a test input. You can modify this later.
-//                 bat 'echo HelloWorld | java AASCIISum'
-//             }
-//         }
-
-//         stage('Archive Artifacts') {
-//             steps {
-//                 archiveArtifacts artifacts: '*.class', fingerprint: true
-//             }
-//         }
-//     }
-
-//     post {
-//         success {
-//             echo '✅ Build successful!'
-//         }
-//         failure {
-//             echo '❌ Build failed. Check console output for details.'
-//         }
-//     }
-// }
-
-
-
 pipeline {
     agent any
 
+    environment {
+        AWS_ACCOUNT_ID = '1087-9201-6419'
+        REGION = 'ap-south-1'
+        IMAGE_NAME = 'asciisum-app'
+    }
+
     stages {
+        stage('Setup AWS Credentials') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
+                ]) {
+                    bat '''
+                        setx AWS_ACCESS_KEY_ID "%AWS_ACCESS_KEY_ID%"
+                        setx AWS_SECRET_ACCESS_KEY "%AWS_SECRET_ACCESS_KEY%"
+                        aws sts get-caller-identity
+                    '''
+                }
+            }
+        }
+
         stage('Checkout Code') {
             steps {
                 git branch: 'main', url: 'https://github.com/Pavankalyan29/Java-project.git'
             }
         }
 
-        stage('Compile Java Code') {
-            steps {
-                echo 'Compiling Java Program...'
-                bat 'javac AASCIISum.java'
-            }
-        }
-
-        stage('Run Java Program') {
-            steps {
-                echo 'Running Java Program...'
-                bat 'echo HelloWorld | java AASCIISum'
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
-                echo 'Building Docker image...'
-                bat 'docker build -t asciisum-app .'
+                bat 'docker build -t %IMAGE_NAME% .'
             }
         }
 
-        stage('Run Docker Container') {
+        stage('Push Docker Image to ECR') {
             steps {
-                echo 'Running Docker container...'
-                // Pass input automatically using echo
-                bat 'echo HelloWorld | docker run -i asciisum-app'
+                bat '''
+                    aws ecr get-login-password --region %REGION% | docker login --username AWS --password-stdin %AWS_ACCOUNT_ID%.dkr.ecr.%REGION%.amazonaws.com
+                    docker tag %IMAGE_NAME%:latest %AWS_ACCOUNT_ID%.dkr.ecr.%REGION%.amazonaws.com/%IMAGE_NAME%:latest
+                    docker push %AWS_ACCOUNT_ID%.dkr.ecr.%REGION%.amazonaws.com/%IMAGE_NAME%:latest
+                '''
             }
         }
 
-        stage('Archive Artifacts') {
+        stage('Terraform Deploy') {
             steps {
-                archiveArtifacts artifacts: '*.class', fingerprint: true
+                dir('terraform') {
+                    bat 'terraform init'
+                    bat 'terraform apply -auto-approve'
+                }
             }
-        }
-    }
-
-    post {
-        success {
-            echo '✅ Build successful!'
-        }
-        failure {
-            
-            echo '❌ Build failed. Check console output for details.'
         }
     }
 }
