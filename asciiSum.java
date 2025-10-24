@@ -1,5 +1,5 @@
 import java.util.*;
-public class AASCIISum{
+public class asciiSum{
     public static void main(String args[]){
         String s = "Helloworld";
         System.out.println(maxSum(s));
