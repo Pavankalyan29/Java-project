@@ -17,7 +17,7 @@ pipeline {
         stage('Compile Java Code') {
             steps {
                 echo 'Compiling Java Program...'
-                bat 'javac AASCIISum.java'
+                bat 'javac asciiSum.java'
             }
         }
 
