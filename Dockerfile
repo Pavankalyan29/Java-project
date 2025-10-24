@@ -5,10 +5,10 @@ FROM openjdk:17-alpine
 WORKDIR /app
 
 # Copy Java source code
-COPY AASCIISum.java .
+COPY asciiSum.java .
 
 # Compile Java code
-RUN javac AASCIISum.java
+RUN javac asciiSum.java
 
 # Run program
-CMD ["java", "AASCIISum"]
+CMD ["java", "asciiSum"]
