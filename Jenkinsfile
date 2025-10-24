@@ -8,21 +8,6 @@ pipeline {
     }
     
     stages {
-        // stage('Setup AWS Credentials') {
-        //     steps {
-        //         withCredentials([
-        //             string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
-        //             string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
-        //         ]) {
-        //             bat '''
-        //                 setx AWS_ACCESS_KEY_ID "%AWS_ACCESS_KEY_ID%"
-        //                 setx AWS_SECRET_ACCESS_KEY "%AWS_SECRET_ACCESS_KEY%"
-        //                 aws sts get-caller-identity
-        //             '''
-        //         }
-        //     }
-        // }
-
         stage('Checkout Code') {
             steps {
                 git branch: 'main', url: 'https://github.com/Pavankalyan29/Java-project.git'
