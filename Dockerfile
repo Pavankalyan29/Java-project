@@ -10,6 +10,5 @@ COPY asciiSum.java .
 # Compile Java code
 RUN javac asciiSum.java
 
-
 # Run program
 CMD ["java", "asciiSum"]
