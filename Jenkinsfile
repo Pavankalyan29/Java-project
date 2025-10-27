@@ -5,8 +5,9 @@ pipeline {
         AWS_ACCOUNT_ID = '108792016419'
         REGION = 'ap-south-1'
         IMAGE_NAME = 'asciisum-app'
+        ECR_URI = '108792016419.dkr.ecr.ap-south-1.amazonaws.com/asciisum-app:latest'
     }
-    
+
     stages {
         stage('Checkout Code') {
             steps {
@@ -31,7 +32,7 @@ pipeline {
         stage('Push Docker Image to ECR') {
             steps {
                 echo 'Pushing Docker image to AWS ECR...'
-                withAWS(credentials: 'aws-creds', region: 'ap-south-1') {
+                withAWS(credentials: 'aws-creds', region: "${REGION}") {
                     bat '''
                     aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 108792016419.dkr.ecr.ap-south-1.amazonaws.com
                     docker tag asciisum-app:latest 108792016419.dkr.ecr.ap-south-1.amazonaws.com/asciisum-app:latest
@@ -40,31 +41,40 @@ pipeline {
                 }
             }
         }
+
         stage('Terraform Deploy') {
             steps {
                 dir('terraform') {
                     withAWS(credentials: 'aws-creds', region: "${REGION}") {
                         echo 'Initializing Terraform...'
                         bat 'terraform init'
-
-                        echo 'Validating Terraform...'
                         bat 'terraform validate'
-
-                        echo 'Planning Terraform deployment...'
                         bat 'terraform plan'
-
-                        echo 'Applying Terraform deployment...'
                         bat 'terraform apply -auto-approve'
                     }
                 }
             }
         }
+
+        stage('Kubernetes Deploy') {
+            steps {
+                echo 'Deploying to Kubernetes...'
+                bat '''
+                aws ecr get-login-password --region ap-south-1 | kubectl create secret docker-registry ecr-secret --docker-server=108792016419.dkr.ecr.ap-south-1.amazonaws.com --docker-username=AWS --docker-password-stdin || echo "Secret exists"
+                kubectl apply -f k8s/deployment.yaml
+                kubectl apply -f k8s/service.yaml
+                kubectl get pods
+                '''
+            }
+        }
+
         stage('Archive Artifacts') {
             steps {
                 archiveArtifacts artifacts: '*.class', fingerprint: true
             }
         }
     }
+
     post {
         success {
             echo '✅ Build, push, and deploy successful!'
