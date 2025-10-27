@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: asciisum-deployment
+  labels:
+    app: asciisum
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: asciisum
+  template:
+    metadata:
+      labels:
+        app: asciisum
+    spec:
+      containers:
+        - name: asciisum-container
+          image: 108792016419.dkr.ecr.ap-south-1.amazonaws.com/asciisum-app:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+      imagePullSecrets:
+        - name: ecr-secret
